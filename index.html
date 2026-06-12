@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucas Zhou</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:      #111;
+      --gray:       #888;
+      --light-gray: #e2e2e2;
+      --white:      #fff;
+      --nav-h:      64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      background: #111;
+      overflow: hidden;
+    }
+    body.ready { overflow: auto; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       INTRO
+    ══════════════════════════════════════════════════════════ */
+    #intro {
+      position: fixed;
+      inset: 0;
+      background: #111;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    /* Iris-close exit */
+    #intro.exit {
+      animation: irisClose 1s cubic-bezier(0.86, 0, 0.07, 1) 0.1s forwards;
+    }
+
+    @keyframes irisClose {
+      0%   { clip-path: circle(150% at 50% 50%); }
+      100% { clip-path: circle(0%   at 50% 50%); }
+    }
+
+    /* Scramble word */
+    .scramble-word {
+      display: flex;
+      align-items: baseline;
+      gap: 0.04em;
+      line-height: 1;
+    }
+
+    .sl {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(80px, 18vw, 220px);
+      color: #fff;
+      letter-spacing: 0.04em;
+      display: inline-block;
+      min-width: 0.62em;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.05s;
+    }
+
+    /* Thin line under the word */
+    .intro-line {
+      width: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.25);
+      margin-top: 24px;
+      transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .intro-line.show { width: min(640px, 75vw); }
+
+    /* Subtitle */
+    .intro-sub {
+      margin-top: 18px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .intro-sub.show { opacity: 1; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       SITE
+    ══════════════════════════════════════════════════════════ */
+    #site {
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    #site.visible { opacity: 1; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       NAV
+    ══════════════════════════════════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: #111;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 60px;
+      z-index: 200;
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    nav:hover {
+      background: #fff;
+      border-bottom-color: #111;
+    }
+
+    .nav-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.07em;
+      cursor: pointer;
+      color: #fff;
+      user-select: none;
+      transition: color 0.25s ease;
+    }
+    nav:hover .nav-logo { color: #111; }
+
+    .nav-links { display: flex; gap: 44px; }
+
+    .nav-link {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: #fff;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      transition: color 0.25s ease;
+    }
+    nav:hover .nav-link { color: #111; }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1px;
+      background: #fff;
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+    nav:hover .nav-link::after { background: #111; }
+    .nav-link:hover::after,
+    .nav-link.active::after { width: 100%; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       SECTIONS  (page-transition: fade + slide)
+    ══════════════════════════════════════════════════════════ */
+    .section {
+      display: none;
+      min-height: 100vh;
+      padding-top: var(--nav-h);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .section.active  { opacity: 1; transform: translateY(0); }
+    .section.leaving { opacity: 0; transform: translateY(-18px); }
+
+
+    /* ══════════════════════════════════════════════════════════
+       HOME
+    ══════════════════════════════════════════════════════════ */
+    #home {
+      flex-direction: row;
+      align-items: stretch;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .home-photo {
+      width: 560px;
+      min-width: 560px;
+      height: calc(100vh - var(--nav-h));
+      position: sticky;
+      top: var(--nav-h);
+      overflow: hidden;
+      background: #222;
+      margin-left: 60px;        /* Figma: x = 60 */
+    }
+
+    .home-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .home-content {
+      flex: 1;
+      padding: 64px 60px 80px 80px;   /* top | right-margin | bot | gap-from-photo */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 720px;
+    }
+
+    .home-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: clamp(36px, 3.8vw, 58px);
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    .home-role {
+      font-size: 13px;
+      color: #888;
+      letter-spacing: 0.03em;
+      margin-bottom: 30px;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: #333;
+      margin-bottom: 26px;
+    }
+
+    .home-bio {
+      font-size: 14px;
+      line-height: 1.9;
+      color: #ccc;
+      max-width: 560px;
+      margin-bottom: 44px;
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .meta-block { margin-bottom: 32px; }
+
+    .meta-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .meta-content {
+      font-size: 13px;
+      line-height: 2;
+      color: #fff;
+    }
+
+
+    /* ══════════════════════════════════════════════════════════
+       WORKS
+    ══════════════════════════════════════════════════════════ */
+    #works {
+      padding: 88px 60px 100px;
+    }
+
+    .works-heading {
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: 44px;
+      letter-spacing: -0.02em;
+      margin-bottom: 48px;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 36px;
+      row-gap: 52px;
+    }
+
+    .project-card { cursor: pointer; outline: none; }
+
+    .project-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      margin-bottom: 18px;
+      background: #111;
+    }
+
+    .project-thumb-inner {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .project-thumb-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      display: block;
+    }
+
+    .project-card:hover .project-thumb-inner { transform: scale(1.04); }
+
+    .project-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .project-name {
+      font-size: 17px;
+      font-weight: 400;
+      margin-bottom: 5px;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .project-loc {
+      font-size: 12px;
+      color: #666;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+
+    /* ══════════════════════════════════════════════════════════
+       PROJECT DETAIL
+    ══════════════════════════════════════════════════════════ */
+    #detail { padding: 40px 120px 100px; }
+
+    .back-btn {
+      display: inline-block;
+      padding: 22px 0;
+      font-size: 12px;
+      visibility: hidden;
+    }
+
+    .detail-title {
+      font-weight: 300;
+      font-size: clamp(34px, 4.2vw, 58px);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    .detail-meta {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 36px;
+    }
+
+    .detail-hero {
+      width: 100%;
+      background: #222;
+      margin-bottom: 64px;
+    }
+    .detail-hero img { width: 100%; height: auto; object-fit: contain; display: block; }
+
+    .detail-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 60px;
+      align-items: start;
+    }
+
+    .about-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .about-text {
+      font-size: 15px;
+      line-height: 1.85;
+      color: #ccc;
+      font-weight: 300;
+    }
+
+    .detail-images { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    .detail-img {
+      background: #222;
+    }
+    .detail-img img { width: 100%; height: auto; object-fit: contain; display: block; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       CONTACT
+    ══════════════════════════════════════════════════════════ */
+    #contact {
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 60px;
+      min-height: calc(100vh - var(--nav-h));
+    }
+
+    .contact-pre {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .contact-heading {
+      font-weight: 300;
+      font-size: clamp(36px, 5vw, 70px);
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      margin-bottom: 48px;
+      max-width: 680px;
+    }
+
+    .contact-email {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      color: #fff;
+      text-decoration: none;
+      border-bottom: 1px solid #fff;
+      padding-bottom: 3px;
+      transition: opacity 0.2s;
+    }
+    .contact-email:hover { opacity: 0.4; }
+
+
+    /* ── Comic layout ── */
+    .comic-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      margin-bottom: 52px;
+    }
+    .comic-strip img { width: 100%; height: auto; display: block; }
+
+    .comic-analysis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+    .comic-analysis img { width: 100%; height: auto; display: block; background: #1a1a1a; }
+
+    /* ── placeholder colours ── */
+    .ph-01 { background: #c8c8c8; }
+    .ph-02 { background: #b8c0c8; }
+    .ph-03 { background: #c0bdb0; }
+    .ph-04 { background: #b8b8c4; }
+
+    /* ── scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+  <!-- ╔═══════════════════════════════════╗
+       ║         INTRO ANIMATION           ║
+       ╚═══════════════════════════════════╝ -->
+  <div id="intro">
+    <div class="scramble-word" id="scramble-word">
+      <span class="sl" id="l0">L</span>
+      <span class="sl" id="l1">U</span>
+      <span class="sl" id="l2">C</span>
+      <span class="sl" id="l3">A</span>
+      <span class="sl" id="l4">S</span>
+    </div>
+    <div class="intro-line" id="intro-line"></div>
+    <p class="intro-sub" id="intro-sub">Architecture &amp; Design</p>
+  </div>
+
+
+  <!-- ╔═══════════════════════════════════╗
+       ║             MAIN SITE             ║
+       ╚═══════════════════════════════════╝ -->
+  <div id="site">
+
+    <!-- NAV -->
+    <nav>
+      <span class="nav-logo" onclick="navigate('home')">LUCAS ZHOU</span>
+      <div class="nav-links">
+        <span class="nav-link" data-sec="works"   onclick="navigate('works')">Works</span>
+        <span class="nav-link" data-sec="contact" onclick="navigate('contact')">Contact</span>
+      </div>
+    </nav>
+
+    <!-- HOME -->
+    <section id="home" class="section">
+      <div class="home-photo">
+        <img src="583e9d1ecbcf834aa8628d6d7ddddd20.jpg" alt="Shichen Zhou" />
+      </div>
+      <div class="home-content">
+        <h1 class="home-name">Shichen Zhou</h1>
+        <p class="home-role">Architecture &amp; Design</p>
+        <div class="divider"></div>
+        <p class="home-bio">
+          I am an architecture student investigating the spatial consequences of rapid urbanization —
+          the erasure of rural identity, the commodification of historical memory, and the alienation
+          embedded in contemporary labor environments.<br><br>
+          My work translates critical theory into architectural proposals that make these tensions
+          legible in space.
+        </p>
+
+        <div class="meta-block">
+          <div class="meta-label">Education</div>
+          <div class="meta-content">
+            University College London<br>
+            MArch Architecture, 2025–2026<br><br>
+            Wenzhou-Kean University<br>
+            Bachelor of Arts in Architecture, GPA 3.71/4.0, 2021–2025
+          </div>
+        </div>
+
+        <div class="meta-block">
+          <div class="meta-label">Experience</div>
+          <div class="meta-content">
+            PES Architects Shanghai — Architecture Intern, 2024<br>
+            China Nuclear 4th Research &amp; Design Institute — Architecture Intern, 2023<br>
+            Wenzhou-Kean University Design Lab — Architecture Intern, 2022–2023<br>
+            Chen Tianlong Art Museum — Head of Administration &amp; Media, 2022–2023
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKS -->
+    <section id="works" class="section">
+      <h2 class="works-heading">Selected Works</h2>
+      <div class="projects-grid" id="projects-grid"></div>
+    </section>
+
+    <!-- DETAIL -->
+    <section id="detail" class="section">
+      <span class="back-btn" onclick="navigate('works')">← Back to Works</span>
+      <h1 class="detail-title" id="d-title"></h1>
+      <p class="detail-meta"  id="d-meta"></p>
+      <div class="detail-hero" id="d-hero"></div>
+      <div id="d-content"></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section">
+      <p class="contact-pre">Get in touch</p>
+      <h2 class="contact-heading">Open to collaborations,<br>conversations, and opportunities.</h2>
+      <a class="contact-email" href="mailto:sczhou240902@163.com">sczhou240902@163.com</a>
+    </section>
+
+  </div><!-- /site -->
+
+
+  <script>
+    /* ════════════════════════════════════════════════════
+       PROJECT DATA
+    ════════════════════════════════════════════════════ */
+    const PROJECTS = [
+      {
+        id: 'p01', num: '01',
+        name: 'Peach Blossom Spring',
+        location: 'Shijiazhuang, HeBei, China', year: '2024',
+        type: 'Academic / Individual', supervisor: 'Richard Leung',
+        coverClass: 'ph-01', coverImg: 'images/p01-cover.jpg', heroImg: 'images/p01-hero.jpg', imgs: ['images/p01-a.jpg','images/p01-b.jpg'],
+        about: `Shijiazhuang plans three new subway lines. Line 4 is the most unusual: it bypasses the urban core and terminates in the countryside, transforming public transit into an instrument of expansion.\n\nAs the subway arrives, so does demolition. Village houses are cleared, replaced by towers. The familiar — narrow roads, multi-generational living, community networks — is overwritten by the logic of the market.\n\nThis project asks: can a transitional space exist here? A threshold between old and new that slows the pace of erasure long enough for identity to be witnessed?`
+      },
+      {
+        id: 'p02', num: '02',
+        name: 'City Memory',
+        location: 'Lucheeng, Wenzhou, China', year: '2023',
+        type: 'Academic / Individual', supervisor: 'Luo Le',
+        coverClass: 'ph-02', coverImg: 'images/p02-cover.jpg', heroImg: 'images/p02-hero.jpg', imgs: ['images/p02-a.jpg','images/p02-b.jpg'],
+        about: `As urbanization accelerates, historical neighbourhoods disappear — along with the memory they carry. This project records the histories of Wenzhou's old city blocks in the form of a museum.\n\nUsing spatial arrangement to make visitors feel as if they are walking through the city's development history, and visual lines of sight to connect the building with existing urban landmarks.`
+      },
+      {
+        id: 'p03', num: '03',
+        name: 'Garden Tower',
+        location: 'Chengdu, Sichuan, China', year: '2024',
+        type: 'Academic / Individual', supervisor: '',
+        coverClass: 'ph-03', coverImg: 'images/p03-cover.jpg', heroImg: 'images/p03-hero.jpg', imgs: ['images/p03-a.jpg','images/p03-b.jpg'],
+        about: `Capital promotes efficiency; work becomes alienation. In response, this project proposes a new high-rise typology drawing on the spatial logic of Suzhou classical gardens — where the journey matters as much as the destination.\n\nFour garden elements are extracted: mountain, vegetation, water, and stone. These are reinterpreted across a mixed-use tower combining commerce, entertainment, library, and hotel — designed to slow the pace of urban life.`
+      },
+      {
+        id: 'p04', num: '04',
+        name: "Simon Say's",
+        location: 'Housing Research', year: '2022',
+        type: 'Academic / Group Work', supervisor: 'Richard Leung',
+        layout: 'comic', noHero: true,
+        coverClass: 'ph-04', coverImg: 'images/p04-cover.jpg', heroImg: 'images/p04-cover.jpg',
+        imgs: [
+          'images/pg-22.jpg',
+          'images/pg-23.jpg',
+          'images/pg-24.jpg',
+          'images/pg-25.jpg'
+        ],
+        about: `China's IT workers experience the 996 system daily. Many come from small cities hoping for a better life, only to find that big cities offer little sense of belonging.\n\nThis project tells the story of Xiao Ming — a 25-year-old IT worker — through a graphic narrative. It proposes Simon Community: a place where residents live without working, but where labour earns "hours" that unlock a better lifestyle. A POI system structures leisure and community life, quietly asking: does this liberate people, or create a new form of control?`
+      }
+    ];
+
+    /* ════════════════════════════════════════════════════
+       RENDER GRID
+    ════════════════════════════════════════════════════ */
+    function renderGrid() {
+      document.getElementById('projects-grid').innerHTML =
+        PROJECTS.map(p => `
+          <div class="project-card" onclick="openDetail('${p.id}')">
+            <div class="project-thumb" style="background:#111">
+              <div class="project-thumb-inner ${p.coverClass}" style="background:#111">
+                ${p.coverImg ? `<img src="${p.coverImg}" alt="${p.name}">` : ''}
+              </div>
+            </div>
+            <p class="project-num">${p.num}</p>
+            <p class="project-name">${p.name}</p>
+            <p class="project-loc">${p.location}&nbsp;·&nbsp;${p.year}</p>
+          </div>`
+        ).join('');
+    }
+
+    /* ════════════════════════════════════════════════════
+       OPEN DETAIL
+    ════════════════════════════════════════════════════ */
+    function openDetail(id) {
+      const p = PROJECTS.find(x => x.id === id);
+      if (!p) return;
+
+      document.getElementById('d-title').textContent = p.name;
+      document.getElementById('d-meta').textContent = [
+        `Location: ${p.location}`,
+        `Year: ${p.year}`,
+        `Type: ${p.type}`,
+        p.supervisor ? `Supervisor: ${p.supervisor}` : null
+      ].filter(Boolean).join('   ·   ');
+
+      const hero = document.getElementById('d-hero');
+      const heroSrc = p.noHero ? null : (p.heroImg || p.coverImg);
+      hero.innerHTML = heroSrc ? `<img src="${heroSrc}" alt="${p.name}">` : '';
+      hero.className = 'detail-hero';
+      hero.style.display = heroSrc ? 'block' : 'none';
+
+      const aboutHtml = p.about.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+      if (p.layout === 'comic') {
+        document.getElementById('d-content').innerHTML = `
+          <div class="detail-body" style="margin-bottom:52px">
+            <div>
+              <div class="about-label">About</div>
+              <p class="about-text">${aboutHtml}</p>
+            </div>
+            <div></div>
+          </div>
+          <div class="comic-strip">
+            ${p.imgs.map(src => `<img src="${src}" alt="${p.name}">`).join('')}
+          </div>
+          ${p.analysisMaps ? `
+          <div class="comic-analysis">
+            ${p.analysisMaps.map(src => `<img src="${src}" alt="${p.name} analysis">`).join('')}
+          </div>` : ''}
+        `;
+      } else {
+        document.getElementById('d-content').innerHTML = `
+          <div class="detail-body">
+            <div>
+              <div class="about-label">About</div>
+              <p class="about-text">${aboutHtml}</p>
+            </div>
+            <div class="detail-images">
+              ${p.imgs.map((src, i) => `
+                <div class="detail-img ${p.coverClass}">
+                  ${src ? `<img src="${src}" alt="${p.name} ${i+1}">` : ''}
+                </div>`).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      navigate('detail');
+    }
+
+    /* ════════════════════════════════════════════════════
+       PAGE NAVIGATION  (fade + slide transition)
+    ════════════════════════════════════════════════════ */
+    let currentSection = 'home';
+
+    const DISPLAY = { home: 'flex', works: 'block', detail: 'block', contact: 'flex' };
+
+    function navigate(targetId) {
+      if (targetId === currentSection) return;
+      const from = document.getElementById(currentSection);
+      const to   = document.getElementById(targetId);
+
+      from.classList.add('leaving');
+      setTimeout(() => {
+        from.classList.remove('active', 'leaving');
+        from.style.display = 'none';
+        to.style.display = DISPLAY[targetId] || 'block';
+        to.getBoundingClientRect(); // force reflow
+        to.classList.add('active');
+        window.scrollTo(0, 0);
+        currentSection = targetId;
+        updateNav(targetId);
+      }, 320);
+    }
+
+    function updateNav(id) {
+      document.querySelectorAll('.nav-link').forEach(el =>
+        el.classList.toggle('active', el.dataset.sec === id)
+      );
+    }
+
+    /* ════════════════════════════════════════════════════
+       SCRAMBLE EFFECT
+    ════════════════════════════════════════════════════ */
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!%&?';
+
+    function scramble(el, target, delay, duration) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          el.style.opacity = '1';
+          const t0 = performance.now();
+
+          function frame(now) {
+            const p = Math.min((now - t0) / duration, 1);
+            // Weighted: random char early, locks to correct letter near end
+            el.textContent = (p < 0.85 && Math.random() > p * 1.1)
+              ? CHARS[Math.floor(Math.random() * CHARS.length)]
+              : target;
+
+            if (p < 1) requestAnimationFrame(frame);
+            else { el.textContent = target; resolve(); }
+          }
+
+          requestAnimationFrame(frame);
+        }, delay);
+      });
+    }
+
+    /* ════════════════════════════════════════════════════
+       GLITCH FLASH  (brief flicker before iris-close)
+    ════════════════════════════════════════════════════ */
+    function glitch(word, cb) {
+      let n = 0;
+      const iv = setInterval(() => {
+        word.style.opacity = (n % 2 === 0) ? '0.15' : '1';
+        n++;
+        if (n >= 6) {
+          clearInterval(iv);
+          word.style.opacity = '1';
+          cb();
+        }
+      }, 55);
+    }
+
+    /* ════════════════════════════════════════════════════
+       INTRO SEQUENCE
+       L 0ms  U 130ms  C 260ms  A 390ms  S 520ms
+       Each scrambles for 520ms  →  last done ~1040ms
+       Line + sub appear at ~1100ms
+       Glitch at ~1800ms  →  iris-close at ~2150ms
+    ════════════════════════════════════════════════════ */
+    window.addEventListener('DOMContentLoaded', () => {
+      renderGrid();
+
+      // Show home section (no transition on first load)
+      const homeEl = document.getElementById('home');
+      homeEl.style.display = 'flex';
+      homeEl.getBoundingClientRect();
+      homeEl.classList.add('active');
+      ['works','detail','contact'].forEach(id =>
+        document.getElementById(id).style.display = 'none'
+      );
+
+      const word    = document.getElementById('scramble-word');
+      const line    = document.getElementById('intro-line');
+      const sub     = document.getElementById('intro-sub');
+      const targets = ['L','U','C','A','S'];
+      const spans   = targets.map((_,i) => document.getElementById('l' + i));
+
+      Promise.all(
+        targets.map((ch, i) => scramble(spans[i], ch, i * 130, 520))
+      ).then(() => {
+        // Line + subtitle reveal
+        setTimeout(() => {
+          line.classList.add('show');
+          sub.classList.add('show');
+        }, 80);
+
+        // Glitch then iris-close
+        setTimeout(() => {
+          glitch(word, () => {
+            setTimeout(() => {
+              document.getElementById('intro').classList.add('exit');
+
+              // Site fades in during iris-close
+              setTimeout(() => {
+                document.getElementById('site').classList.add('visible');
+                document.body.classList.add('ready');
+              }, 280);
+
+              // Remove intro from DOM
+              setTimeout(() => {
+                const el = document.getElementById('intro');
+                if (el) el.remove();
+              }, 1200);
+            }, 120);
+          });
+        }, 700);
+      });
+    });
+  </script>
+</body>
+</html>
