@@ -488,6 +488,81 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+
+    /* ══════════════════════════════════════════════════════════
+       MOBILE  (≤ 768px)
+    ══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* Nav */
+      nav { padding: 0 24px; }
+      .nav-links { gap: 28px; }
+
+      /* Intro */
+      .sl { font-size: clamp(56px, 18vw, 120px); }
+
+      /* Home — stack vertically */
+      #home { flex-direction: column; }
+
+      .home-photo {
+        width: 100%;
+        min-width: 0;
+        height: 72vw;
+        position: relative;
+        top: 0;
+        margin-left: 0;
+      }
+
+      .home-content {
+        padding: 40px 24px 60px;
+        max-width: 100%;
+      }
+
+      .home-name { font-size: clamp(30px, 8vw, 44px); }
+
+      /* Works */
+      #works { padding: 60px 24px 80px; }
+
+      .works-heading { font-size: 32px; margin-bottom: 32px; }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+        row-gap: 44px;
+      }
+
+      /* Detail */
+      #detail { padding: 20px 24px 80px; }
+
+      .detail-title { font-size: clamp(26px, 7vw, 40px); }
+
+      .detail-body {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .detail-images {
+        grid-template-columns: 1fr;
+      }
+
+      /* Comic */
+      .comic-analysis { grid-template-columns: 1fr; }
+
+      /* Contact */
+      #contact { padding: 0 24px; }
+
+      .contact-heading { font-size: clamp(28px, 8vw, 48px); }
+    }
+
+    /* ── Extra small (≤ 480px) ── */
+    @media (max-width: 480px) {
+      nav { padding: 0 16px; }
+      .nav-logo { font-size: 11px; }
+      .home-photo { height: 80vw; }
+      #works { padding: 48px 16px 60px; }
+      #detail { padding: 16px 16px 60px; }
+      #contact { padding: 0 16px; }
+    }
   </style>
 </head>
 <body>
